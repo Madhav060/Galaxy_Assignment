@@ -2,10 +2,19 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import UserProfile from "@/components/UserProfile";
 
 const Navbar: React.FC = () => {
+  const router = useRouter();
+
+  const handleStartNowClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Force a full page navigation to avoid client-side routing issues
+    window.location.href = "/start-now";
+  };
+
   return (
     <header className="w-full bg-[#eef1ef] border-b border-black/10">
       <div className="max-w-[1600px] mx-auto px-6 h-16 flex items-center justify-between">
@@ -68,12 +77,12 @@ const Navbar: React.FC = () => {
             </SignInButton>
           </SignedOut>
           <SignedIn>
-            <Link
-              href="/start-now"
-              className="ml-2 bg-[#e7ff3c] text-black px-4 py-2 text-sm font-semibold rounded-md hover:bg-[#dff02a] transition inline-block"
+            <button
+              onClick={handleStartNowClick}
+              className="ml-2 bg-[#e7ff3c] text-black px-4 py-2 text-sm font-semibold rounded-md hover:bg-[#dff02a] transition"
             >
               START NOW
-            </Link>
+            </button>
           </SignedIn>
         </nav>
       </div>

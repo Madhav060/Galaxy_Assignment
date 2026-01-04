@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, LayoutGrid, List, FileText, Plus, ChevronLeft, ChevronRight, Trash2, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useWorkflowStore } from "@/store/workflowStore";
 import UserDropdown from "@/components/UserDropdown";
 
@@ -18,6 +18,7 @@ interface Workflow {
 export default function StartNowPage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
   const clearWorkflow = useWorkflowStore((state) => state.clearWorkflow);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,6 +27,16 @@ export default function StartNowPage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  // Ensure component is mounted (client-side only)
+  useEffect(() => {
+    setMounted(true);
+    // Verify we're on the correct path
+    if (typeof window !== "undefined" && pathname !== "/start-now") {
+      router.replace("/start-now");
+    }
+  }, [pathname, router]);
 
   // Get user's name for workspace title
   const userName = user?.firstName || user?.lastName || user?.emailAddresses[0]?.emailAddress || "User";
@@ -144,6 +155,11 @@ export default function StartNowPage() {
   const filteredWorkflows = workflows.filter((workflow) =>
     workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Don't render until mounted (prevents hydration issues)
+  if (!mounted) {
+    return null;
+  }
 
   // Show loading state while checking authentication
   if (!isLoaded) {
