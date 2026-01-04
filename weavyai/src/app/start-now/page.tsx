@@ -16,7 +16,7 @@ interface Workflow {
 }
 
 export default function StartNowPage() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const router = useRouter();
   const clearWorkflow = useWorkflowStore((state) => state.clearWorkflow);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -33,6 +33,13 @@ export default function StartNowPage() {
   const fullName = user?.firstName && user?.lastName 
     ? `${user.firstName} ${user.lastName}` 
     : userName;
+
+  // Redirect if not authenticated (middleware should handle this, but adding safety check)
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push("/");
+    }
+  }, [isLoaded, user, router]);
 
   // Fetch workflows from API
   useEffect(() => {
@@ -137,6 +144,23 @@ export default function StartNowPage() {
   const filteredWorkflows = workflows.filter((workflow) =>
     workflow.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Show loading state while checking authentication
+  if (!isLoaded) {
+    return (
+      <div className="flex h-screen bg-[#1a1a1a] text-white items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gray-700 border-t-[#f7f7ad] rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if user is not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-[#1a1a1a] text-white">
