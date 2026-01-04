@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState, useRef, useEffect } from "react";
-import { Handle, Position, NodeProps, useReactFlow } from "reactflow";
+import { Handle, Position, NodeProps } from "reactflow";
 import { Image as ImageIcon, X, Maximize2, Minimize2 } from "lucide-react";
 import { useWorkflowStore } from "@/store/workflowStore";
 

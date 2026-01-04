@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState, useRef, useEffect } from "react";
-import { Handle, Position, NodeProps, useReactFlow } from "reactflow";
+import { Handle, Position, NodeProps } from "reactflow";
 import { FileText, X, Maximize2, Minimize2 } from "lucide-react";
 import { useWorkflowStore } from "@/store/workflowStore";
 
@@ -16,7 +16,6 @@ const TextNode = ({ id, data, selected }: NodeProps<TextNodeData>) => {
   const updateNodeData = useWorkflowStore((state) => state.updateNodeData);
   const deleteNode = useWorkflowStore((state) => state.deleteNode);
   const updateNodeSize = useWorkflowStore((state) => state.updateNodeSize);
-  const { updateNode } = useReactFlow();
   const [value, setValue] = useState(data.value || "");
   const nodeRef = useRef<HTMLDivElement>(null);
   const [isResizing, setIsResizing] = useState(false);
