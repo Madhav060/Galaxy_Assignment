@@ -159,7 +159,7 @@ function WorkflowCanvas({ onNodeAdded, interactionMode }: { onNodeAdded?: () => 
               // Allow LLM nodes only if they have text output (not image output)
               const output = sourceNode.data?.output;
               if (output && typeof output === "string") {
-                const isImageOutput = output.startsWith("data:image/") || output.match(/^data:image\//);
+                const isImageOutput = output.startsWith("data:image/") || !!output.match(/^data:image\//);
                 return !isImageOutput; // Only allow if it's NOT an image output
               }
               return true; // Allow if no output yet (will be validated later)
@@ -180,7 +180,7 @@ function WorkflowCanvas({ onNodeAdded, interactionMode }: { onNodeAdded?: () => 
             if (sourceNode.type === "llm") {
               const output = sourceNode.data?.output;
               if (output && typeof output === "string") {
-                const isImageOutput = output.startsWith("data:image/") || output.match(/^data:image\//);
+                const isImageOutput = output.startsWith("data:image/") || !!output.match(/^data:image\//);
                 return isImageOutput; // Only allow if it IS an image output
               }
               return false; // Don't allow LLM nodes without image output
