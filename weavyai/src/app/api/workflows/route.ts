@@ -14,9 +14,11 @@ export async function GET(req: NextRequest) {
 
     await connectDB();
 
+    // Only fetch fields needed for the list view - exclude large nodes/edges data
     const workflows = await Workflow.find({ userId })
       .sort({ updatedAt: -1 })
-      .select("name userId nodes edges viewport isPublic createdAt updatedAt");
+      .select("name userId createdAt updatedAt")
+      .limit(100); // Limit to prevent fetching too many workflows
 
     return NextResponse.json({ workflows }, { status: 200 });
   } catch (error) {

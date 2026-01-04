@@ -25,13 +25,22 @@ export async function GET(
 
     await connectDB();
 
-    const workflow = await Workflow.findOne({ _id: id, userId });
+    // Use lean() to return plain JS objects (faster) and select only needed fields
+    const workflow = await Workflow.findOne({ _id: id, userId })
+      .lean()
+      .select("name userId nodes edges viewport isPublic createdAt updatedAt");
 
     if (!workflow) {
       return NextResponse.json({ error: "Workflow not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ workflow }, { status: 200 });
+    // Convert _id to string for JSON serialization
+    const workflowResponse = {
+      ...workflow,
+      _id: workflow._id.toString(),
+    };
+
+    return NextResponse.json({ workflow: workflowResponse }, { status: 200 });
   } catch (error) {
     console.error("Error fetching workflow:", error);
     return NextResponse.json(
