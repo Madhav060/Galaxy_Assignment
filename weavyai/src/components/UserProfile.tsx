@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 import { User, LogOut } from "lucide-react";
 
 export default function UserProfile() {
   const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -40,9 +41,11 @@ export default function UserProfile() {
   const userImage = user.imageUrl;
 
   const handleSignOut = async () => {
-    // Use Clerk's signOut method
-    const { signOut } = await import("@clerk/nextjs");
-    await signOut({ redirectUrl: "/" });
+    try {
+      await signOut({ redirectUrl: "/" });
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (

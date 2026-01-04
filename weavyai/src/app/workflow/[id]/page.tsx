@@ -271,7 +271,7 @@ export default function WorkflowEditorPage() {
         // Initialize history with the loaded state
         // Use a small delay to ensure state is set
         setTimeout(() => {
-          const { history } = useWorkflowStore.getState();
+          const { history, saveToHistory } = useWorkflowStore.getState();
           if (history.length === 0 || (history.length === 1 && history[0].nodes.length === 0 && history[0].edges.length === 0)) {
             saveToHistory();
           }
