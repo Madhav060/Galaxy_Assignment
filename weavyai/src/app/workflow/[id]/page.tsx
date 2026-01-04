@@ -146,7 +146,8 @@ function WorkflowCanvas({ onNodeAdded, interactionMode }: { onNodeAdded?: () => 
           }
 
           const sourceNode = nodes.find((n) => n.id === connection.source);
-          if (!sourceNode) return false;
+          const targetNode = nodes.find((n) => n.id === connection.target);
+          if (!sourceNode || !targetNode) return false;
 
           // If target handle is system_prompt or user_message, only allow text nodes or LLM nodes (not image nodes)
           if (connection.targetHandle === "system_prompt" || connection.targetHandle === "user_message") {
@@ -169,7 +170,28 @@ function WorkflowCanvas({ onNodeAdded, interactionMode }: { onNodeAdded?: () => 
             }
           }
 
-          // Allow all other connections
+          // If target handle is an image input (images_0, images_1, etc.), only allow image nodes or LLM nodes with image output
+          if (connection.targetHandle?.startsWith("images_")) {
+            // Allow image nodes
+            if (sourceNode.type === "image") {
+              return true;
+            }
+            // Allow LLM nodes with image output
+            if (sourceNode.type === "llm") {
+              const output = sourceNode.data?.output;
+              if (output && typeof output === "string") {
+                const isImageOutput = output.startsWith("data:image/") || output.match(/^data:image\//);
+                return isImageOutput; // Only allow if it IS an image output
+              }
+              return false; // Don't allow LLM nodes without image output
+            }
+            // Block text nodes from connecting to image inputs
+            if (sourceNode.type === "text") {
+              return false;
+            }
+          }
+
+          // Allow all other connections (output handles, etc.)
           return true;
         }}
         panOnScroll={true}
