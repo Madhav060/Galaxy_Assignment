@@ -47,9 +47,9 @@ export default function WeavyPage() {
 
   return (
     <>
-      <Hero />
-      <ModelsSection />
-      <WorkflowSection />
+            <Hero />
+            <ModelsSection />
+            <WorkflowSection /> 
       <ExploreWorkflows />
     </>
   );

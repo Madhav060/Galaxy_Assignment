@@ -49,69 +49,74 @@ export default function InteractiveWorkflowFinal() {
 
   return (
     <section className="relative w-full min-h-[95vh] bg-gradient-to-b from-white to-gray-200 overflow-hidden font-sans flex flex-col">
+    {/* Grid Overlay */}
+    <div
+      className="absolute inset-0 pointer-events-none"
+      style={{
+        backgroundImage: `
+          linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)
+        `,
+        backgroundSize: "24px 24px",
+      }}
+    />
 
-      {/* Grid Overlay */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px)
-          `,
-          backgroundSize: '24px 24px',
-        }}
-      />
-
-      {/* Heading */}
-      <div className="relative z-10 text-center pt-12">
-        <h1 className="
+    {/* Heading */}
+    <div className="relative z-10 text-center pt-2 md:pt-4">
+      <h1
+        className="
           text-[4.25rem] md:text-[5.5rem] lg:text-[6.25rem]
           font-medium tracking-tight leading-[1.05]
-        ">
-          With all the professional<br /> tools you rely on
-        </h1>
+        "
+      >
+        With all the professional
+        <br />
+        tools you rely on
+      </h1>
 
-        <p className="text-gray-600 text-xl mt-4">
-          In one seamless workflow
-        </p>
-      </div>
+      <p className="text-gray-600 text-xl mt-1">
+        In one seamless workflow
+      </p>
+    </div>
 
-      {/* Image Area */}
-      <div className="relative z-10 flex-1 flex items-center justify-center pb-20">
-        <div
-          className="
-            relative
-            w-[99vw]
-            max-w-[1350px]
-            aspect-[16/9]
-            rounded-[40px]
-            overflow-hidden
-            -translate-y-[18%]
-            transition-transform
-            duration-300
-            ease-out
-          "
+   {/* Image Area */}
+<div className="relative z-10 flex-1 pb-4"> {/* Parent: relative + minimal pb */}
+  <div
+    className="
+      absolute inset-x-0 bottom-0
+      w-[99vw]
+      max-w-[1350px]
+      mx-auto
+      aspect-[16/9]
+      rounded-[40px]
+      overflow-hidden
+      -translate-y-[3%]
+      transition-transform
+      duration-300
+      ease-out
+    "
+  >
+    <img
+      src={activeImage}
+      alt="Workflow"
+      className="w-full h-full object-cover"
+    />
+
+    <div className="absolute inset-0">
+      {TOOLS.map((t) => (
+        <button
+          key={t.id}
+          onMouseEnter={() => setActiveImage(t.image)}
+          onMouseLeave={() => setActiveImage(ASSETS.default)}
+          className={`${BTN} ${t.pos}`}
         >
-          <img
-            src={activeImage}
-            alt="Workflow"
-            className="w-full h-full object-cover"
-          />
+          {t.label}
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
 
-          <div className="absolute inset-0">
-            {TOOLS.map((t) => (
-              <button
-                key={t.id}
-                onMouseEnter={() => setActiveImage(t.image)}
-                onMouseLeave={() => setActiveImage(ASSETS.default)}
-                className={`${BTN} ${t.pos}`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
+  </section>
   );
 }

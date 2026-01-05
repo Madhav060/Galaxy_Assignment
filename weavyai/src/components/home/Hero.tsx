@@ -65,6 +65,40 @@ export default function Hero() {
         linesRef.current = [];
       };
 
+      // Helper to safely position lines, removing disconnected ones
+      const safePositionLines = () => {
+        if (!linesRef.current || linesRef.current.length === 0) return;
+        
+        linesRef.current = linesRef.current.filter((line) => {
+          try {
+            // Check if line instance is valid
+            if (!line || typeof line.position !== 'function') {
+              return false;
+            }
+            
+            // Try to position the line - this will throw if elements are disconnected
+            line.position();
+            return true;
+          } catch (e: any) {
+            // Silently handle disconnected element errors
+            // Only log if it's not the expected "disconnected element" error
+            if (e && e.message && !e.message.includes('disconnected')) {
+              console.warn('LeaderLine positioning error:', e.message);
+            }
+            
+            // If positioning fails (disconnected element), remove the line
+            try {
+              if (line && typeof line.remove === 'function') {
+                line.remove();
+              }
+            } catch (removeError) {
+              /* ignore removal errors */
+            }
+            return false;
+          }
+        });
+      };
+
       // 3. Draw "Strings" (Connections)
       const createConnections = () => {
         clearLines();
@@ -91,11 +125,11 @@ export default function Hero() {
                   startSocket: "right",
                   endSocket: "left",
                   startPlug: "disc",
-                  startPlugSize: 4,
+                  startPlugSize: 3,
                   startPlugColor: "#ffffff",
                   startPlugOutline: true,
                   endPlug: "disc",
-                  endPlugSize: 4,
+                  endPlugSize: 3,
                   endPlugColor: "#ffffff",
                   endPlugOutline: true,
                   hide: true, // Hidden initially until positioned
@@ -109,7 +143,15 @@ export default function Hero() {
         });
 
         // Show lines after creation
-        linesRef.current.forEach((l) => l.show());
+        linesRef.current.forEach((l) => {
+          try {
+            if (l && typeof l.show === 'function') {
+              l.show();
+            }
+          } catch (e) {
+            // Silently handle errors when showing lines
+          }
+        });
       };
 
       // 4. "Figma-like" Drag Interaction
@@ -141,10 +183,10 @@ export default function Hero() {
                 gsap.to(el, { scale: 1, zIndex: 10, duration: 0.2 });
               },
               onDrag() {
-                linesRef.current.forEach((line) => line.position());
+                safePositionLines();
               },
               onThrowUpdate() {
-                linesRef.current.forEach((line) => line.position());
+                safePositionLines();
               },
             });
           });
@@ -156,19 +198,32 @@ export default function Hero() {
       setupDraggables();
 
       // Force position update after a slight delay to ensure DOM layout is settled
-      setTimeout(() => linesRef.current.forEach((l) => l.position()), 100);
+      setTimeout(() => safePositionLines(), 100);
 
       const handleResize = () => {
         createConnections();
         setupDraggables();
       };
-      const handleScroll = () => linesRef.current.forEach((l) => l.position());
+      
+      // Debounce scroll handler to reduce calls
+      let scrollTimeout: NodeJS.Timeout | null = null;
+      const handleScroll = () => {
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
+        scrollTimeout = setTimeout(() => {
+          safePositionLines();
+        }, 16); // ~60fps
+      };
 
       window.addEventListener("resize", handleResize);
       window.addEventListener("scroll", handleScroll, true); // Capture scroll
 
       cleanupFunc = () => {
         clearLines();
+        if (scrollTimeout) {
+          clearTimeout(scrollTimeout);
+        }
         window.removeEventListener("resize", handleResize);
         window.removeEventListener("scroll", handleScroll, true);
         const draggables = window.Draggable?.get(
@@ -189,14 +244,12 @@ export default function Hero() {
     "node-connect absolute rounded-2xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.12)] bg-white border border-gray-100 cursor-grab active:cursor-grabbing transition-shadow duration-200 hover:shadow-[0_20px_40px_rgb(0,0,0,0.15)]";
 
   // Anchors - positioned exactly on the edge
-  const anchorStart =
-    "line-anchor start absolute w-3 h-3 bg-white rounded-full top-1/2 -right-1.5 border-[2.5px] border-gray-300 z-20 box-content";
-  const anchorEnd =
-    "line-anchor end absolute w-3 h-3 bg-white rounded-full top-1/2 -left-1.5 border-[2.5px] border-gray-300 z-20 box-content";
+  const anchorStart = "line-anchor start absolute w-3 h-3 bg-white rounded-full top-1/2 -right-1.5 border-[2.5px] border-white z-20 box-content";
+const anchorEnd = "line-anchor end absolute w-3 h-3 bg-white rounded-full top-1/2 -left-1.5 border-[2.5px] border-white z-20 box-content";
 
   return (
     <section
-      className="relative w-full h-screen bg-[#f8f9fa] text-gray-900 overflow-hidden flex flex-col"
+      className="relative w-full h-screen bg-[#f8f9fa] text-gray-900 overflow-hidden flex flex-col pt-16"
       style={{
         fontFamily:
           '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif',
@@ -267,14 +320,7 @@ export default function Hero() {
           >
             <div className={anchorStart}></div>
 
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-              <span className="text-[10px] font-bold text-gray-800 tracking-wide uppercase">
-                3D
-              </span>
-              <span className="text-[10px] font-bold text-gray-500 tracking-wide uppercase">
-                RODIN 2.0
-              </span>
-            </div>
+
 
             <div className="w-full h-[200px] bg-[#e2e5e9] relative">
               <model-viewer
@@ -300,11 +346,7 @@ export default function Hero() {
           >
             <div className={anchorStart}></div>
 
-            <div className="absolute top-3 left-3 z-10">
-              <span className="text-[10px] font-bold text-white tracking-wide uppercase drop-shadow-md">
-                COLOR REFERENCE
-              </span>
-            </div>
+            
 
             <img
               src="https://cdn.prod.website-files.com/681b040781d5b5e278a69989/681cd77722078ff43fe428f3_hcard-color%20reference.avif"
@@ -323,14 +365,7 @@ export default function Hero() {
             <div className={anchorEnd}></div>
             <div className={anchorStart}></div>
 
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-              <span className="text-[10px] font-bold text-white tracking-wide uppercase drop-shadow-md">
-                IMAGE
-              </span>
-              <span className="text-[10px] font-bold text-white/80 tracking-wide uppercase drop-shadow-md">
-                STABLE DIFFUSION
-              </span>
-            </div>
+            
 
             <img
               src="https://cdn.prod.website-files.com/681b040781d5b5e278a69989/681cd7cbc22419b32bb9d8d8_hcard%20-%20STABLE%20DIFFUSION.avif"
@@ -349,11 +384,7 @@ export default function Hero() {
             <div className={anchorEnd}></div>
             <div className={anchorStart}></div>
 
-            <div className="absolute top-3 left-3 z-10">
-              <span className="text-[10px] font-bold text-gray-800 tracking-wide uppercase">
-                TEXT
-              </span>
-            </div>
+            
 
             <div className="p-6 pt-10 pb-8">
               <p className="text-[13px] text-gray-500 leading-relaxed font-medium">
@@ -374,14 +405,7 @@ export default function Hero() {
             <div className={anchorEnd}></div>
             <div className={anchorStart}></div>
 
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-              <span className="text-[10px] font-bold text-gray-800 tracking-wide uppercase">
-                IMAGE
-              </span>
-              <span className="text-[10px] font-bold text-gray-500 tracking-wide uppercase">
-                FLUX PRO 1.1
-              </span>
-            </div>
+            
 
             <img
               src="https://cdn.prod.website-files.com/681b040781d5b5e278a69989/6837510acbe777269734b387_bird_desktop.avif"
@@ -391,27 +415,31 @@ export default function Hero() {
           </div>
 
           <div
-            id="node6"
-            className={`${imageCardStyle} w-[340px] h-[460px]`} // 👈 same visual height as Node 3
-            style={{ top: "15%", left: "85%" }}
-          >
-            <div className={anchorEnd}></div>
+  id="node6"
+  className={`${imageCardStyle} w-[340px] h-[460px]`} // same size
+  style={{ top: "15%", left: "85%" }}
+>
+  <div className={anchorEnd}></div>
 
-            <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
-              <span className="text-[10px] font-bold text-gray-800 uppercase">
-                VIDEO
-              </span>
-              <span className="text-[10px] font-bold text-gray-500 uppercase">
-                MINIMAX VIDEO
-              </span>
-            </div>
+  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+    <span className="text-[10px] font-bold text-gray-800 uppercase">
+      VIDEO
+    </span>
+    <span className="text-[10px] font-bold text-gray-500 uppercase">
+      MINIMAX VIDEO
+    </span>
+  </div>
 
-            <img
-              src="https://cdn.prod.website-files.com/681b040781d5b5e278a69989/681cd7cbc22419b32bb9d8d8_hcard%20-%20STABLE%20DIFFUSION.avif"
-              className="w-full h-full object-cover pointer-events-none block" // 👈 KEY
-              alt="minimax result"
-            />
-          </div>
+  <video
+    src="https://assets.weavy.ai/homepage/hero/hero_video_mobile_342px.mp4"
+    className="w-full h-full object-cover pointer-events-none block"
+    autoPlay
+    muted
+    loop
+    playsInline
+  />
+</div>
+
         </div>
       </div>
     </section>

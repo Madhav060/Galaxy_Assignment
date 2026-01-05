@@ -23,13 +23,25 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={inter.className}>
+        <body className={`${inter.className} bg-white`}>
           
-          {/* ✅ NAVBAR — CONDITIONALLY RENDERED */}
-          <ConditionalNavbar />
+          {/* ✅ STICKY HEADER CONTAINER */}
+          <div className="fixed top-0 left-0 w-full z-[100]">
+            
+           
+
+            {/* Navbar */}
+            <ConditionalNavbar />
+          </div>
 
           {/* PAGE CONTENT */}
-          {children}
+          {/* Note: Because the header is 'fixed', it floats above content. 
+              If your hero section isn't full-screen, you might need a 
+              pt-24 (padding-top) on your main content wrapper.
+          */}
+          <main>
+            {children}
+          </main>
 
           {/* External scripts */}
           <Script
